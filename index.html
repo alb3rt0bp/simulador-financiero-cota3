@@ -7,7 +7,6 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 
     <style>
@@ -22,416 +21,287 @@
         body { font-family: 'Inter', sans-serif; background-color: var(--color-bg); color: var(--color-text); }
         h1, h2, h3 { font-family: 'Playfair Display', serif; color: var(--color-primary); }
 
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 800px;
-            margin: auto;
-            height: 350px;
-        }
-
-        .card {
-            background-color: var(--color-card);
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
-        }
-
-        input[type=range] { width: 100%; accent-color: var(--color-accent); }
-
-        .table-container {
-            overflow-x: auto;
-        }
+        input[type=range] { accent-color: #2563eb; height: 6px; border-radius: 5px; background: #e2e8f0; appearance: none; }
+        input[type=range]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; background: #2563eb; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
         
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+        .table-container { overflow-x: auto; border-radius: 1rem; border: 1px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; text-align: left; background: white; }
+        th { background: #0f172a; color: white; padding: 1rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        td { padding: 1rem; border-bottom: 1px solid #f1f5f9; font-size: 0.875rem; }
+        tr:last-child td { border-bottom: none; }
+        .negative { color: #dc2626; font-weight: 600; }
+        .positive { color: #16a34a; font-weight: 600; }
+        .input-box { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 0.5rem; padding: 0.5rem; width: 100%; outline: none; font-weight: 600; }
         
-        th {
-            background-color: #f1f5f9;
-            text-align: left;
-            padding: 0.75rem;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: #64748b;
-        }
-        
-        td {
-            padding: 0.75rem;
-            border-bottom: 1px solid #f1f5f9;
-            font-size: 0.875rem;
-        }
-
-        .highlight-row {
-            background-color: #fffbeb;
-        }
-
-        .paid-badge {
-            background-color: #dcfce7;
-            color: #166534;
-            padding: 2px 8px;
-            border-radius: 9999px;
-            font-size: 0.7rem;
-            font-weight: 700;
-        }
-
-        .pending-badge {
-            background-color: #fef9c3;
-            color: #854d0e;
-            padding: 2px 8px;
-            border-radius: 9999px;
-            font-size: 0.7rem;
-            font-weight: 700;
-        }
-
-        .numeric-input {
-            border: 2px solid #e2e8f0;
-            border-radius: 0.5rem;
-            padding: 0.5rem;
-            width: 100%;
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: #059669;
-            text-align: center;
-        }
-        
-        .numeric-input:focus {
-            outline: none;
-            border-color: #059669;
-            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
-        }
+        .param-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        .param-value { color: #2563eb; font-weight: 800; font-size: 0.9rem; }
     </style>
 </head>
-<body class="antialiased">
+<body class="p-4 md:p-8">
 
-    <header class="bg-slate-900 text-white py-10 px-6">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
-            <div class="text-center md:text-left">
-                <h1 class="text-4xl font-bold mb-2">Simulador Sepulcro 13</h1>
-                <p class="text-slate-400">Presupuesto de Contrata (Cotatres): 450.150€ + IVA.</p>
-            </div>
-            <div class="mt-6 md:mt-0 bg-slate-800 p-4 rounded-lg border border-slate-700 text-center md:text-right">
-                <span class="text-xs uppercase text-slate-500 font-bold block mb-1">Inversión Total Estimada (Obra + Gastos)</span>
-                <span class="text-3xl font-bold text-amber-500" id="header-total">0 €</span>
-            </div>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+    <div class="max-w-7xl mx-auto space-y-8">
         
-        <!-- SECTION 1: CONTROLS & DYNAMIC KPIs -->
-        <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- CABECERA -->
+        <header class="flex flex-col md:flex-row justify-between items-end gap-4 bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+            <div>
+                <h1 class="text-4xl font-black tracking-tight mb-2">SEPULCRO 13</h1>
+                <p class="text-slate-500 font-medium uppercase text-xs tracking-widest">Control de Liquidez y Análisis de Autopromoción</p>
+            </div>
+            <div class="text-right">
+                <p class="text-[10px] font-bold text-slate-400 uppercase">Presupuesto Ejecución Material (s/IVA)</p>
+                <p class="text-3xl font-black text-blue-600">450.150,35 €</p>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            <!-- Sliders Panel -->
-            <div class="card space-y-6 border-t-4 border-amber-500">
-                <h3 class="text-xl font-bold border-b pb-2">Parámetros Bancarios</h3>
-                
-                <div>
-                    <div class="flex justify-between mb-2">
-                        <label class="text-sm font-semibold">Financiación sobre Contrata: <span id="val-ltv">80</span>%</label>
-                    </div>
-                    <input type="range" id="input-ltv" min="50" max="100" value="80">
-                </div>
+            <!-- PANEL DE CONTROL (IZQUIERDA) -->
+            <div class="space-y-6">
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+                    <h3 class="text-lg font-bold italic border-b pb-2">Parámetros Hipoteca</h3>
+                    
+                    <div class="space-y-6">
+                        <!-- Financiación LTV -->
+                        <div>
+                            <div class="param-label">
+                                <label class="text-sm font-bold text-slate-700">Financiación (LTV)</label>
+                                <span id="ltv-display" class="param-value">80%</span>
+                            </div>
+                            <input type="range" id="input-ltv" min="1" max="100" step="1" value="80" class="w-full">
+                        </div>
 
-                <div>
-                    <div class="flex justify-between mb-2">
-                        <label class="text-sm font-semibold">Plazo Amortización: <span id="val-years">25</span> años</label>
-                    </div>
-                    <input type="range" id="input-years" min="5" max="35" value="25">
-                </div>
+                        <!-- Plazo -->
+                        <div>
+                            <div class="param-label">
+                                <label class="text-sm font-bold text-slate-700">Plazo (Años)</label>
+                                <span id="years-display" class="param-value">30 años</span>
+                            </div>
+                            <input type="range" id="input-years" min="10" max="35" step="1" value="30" class="w-full">
+                        </div>
 
-                <div>
-                    <div class="flex justify-between mb-2">
-                        <label class="text-sm font-semibold">Tipo de Interés (E): <span id="val-rate">3.5</span>%</label>
-                    </div>
-                    <input type="range" id="input-rate" min="0.5" max="7.0" step="0.1" value="3.5">
-                </div>
-
-                <div class="pt-4 bg-slate-50 p-4 rounded-lg text-center">
-                    <span class="text-xs uppercase text-slate-500 font-bold">Cuota Mensual Estimada</span>
-                    <p class="text-4xl font-black text-slate-900" id="display-monthly">0 €</p>
-                </div>
-            </div>
-
-            <!-- Dynamic Results -->
-            <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="card flex flex-col justify-center items-center text-center">
-                    <h3 class="text-sm uppercase text-slate-400 font-bold">Capital Concedido</h3>
-                    <p class="text-4xl font-bold text-blue-600 my-2" id="display-loan">0 €</p>
-                    <p class="text-xs text-slate-500">Máximo financiable estimado</p>
-                </div>
-                
-                <div class="card flex flex-col justify-between items-center text-center border-l-4 border-emerald-500">
-                    <h3 class="text-sm uppercase text-slate-400 font-bold mb-2">Tus Ahorros Totales (€)</h3>
-                    <input type="number" id="input-own-manual" class="numeric-input" value="185000">
-                    <div class="mt-3">
-                        <span class="text-[10px] uppercase text-slate-400 font-bold">Aportación Propia Necesaria</span>
-                        <p class="text-lg font-semibold text-slate-700" id="display-own-recommended">0 €</p>
+                        <!-- Interés -->
+                        <div>
+                            <div class="param-label">
+                                <label class="text-sm font-bold text-slate-700">Tipo de Interés</label>
+                                <span id="rate-display" class="param-value">3.50%</span>
+                            </div>
+                            <input type="range" id="input-rate" min="0" max="10" step="0.05" value="3.5" class="w-full">
+                        </div>
                     </div>
                 </div>
 
-                <div class="card md:col-span-2 flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-50">
-                    <div class="max-w-md">
-                        <h3 class="text-lg font-bold">Estado de Tesorería</h3>
-                        <p class="text-sm text-slate-600" id="liquidity-msg">Calculando...</p>
-                        <p class="text-[10px] text-slate-400 mt-1 uppercase font-bold">Incluye IVA, Gastos e Inversión ya realizada.</p>
+                <div class="bg-blue-600 p-6 rounded-3xl shadow-lg text-white space-y-2">
+                    <p class="text-[10px] uppercase font-bold opacity-80">Cuota Mensual Estimada</p>
+                    <p id="monthly-payment" class="text-3xl font-black">0,00 €</p>
+                    <div class="pt-2 border-t border-blue-400/30 text-[10px] opacity-70">
+                        Capital Prestado: <span id="loan-amt">0 €</span>
                     </div>
-                    <div class="text-center px-6 py-3 rounded-xl" id="liquidity-status-box">
-                        <span class="text-xs uppercase font-bold block opacity-70">Margen de Liquidez</span>
-                        <span class="text-2xl font-black" id="display-balance">0 €</span>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="text-sm font-bold uppercase tracking-widest text-slate-400">Fondos Iniciales</h3>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase">Tu Liquidez Disponible</label>
+                        <input type="number" id="input-funds" value="160000" class="w-full text-2xl font-black p-2 bg-slate-50 border-b-2 border-blue-500 outline-none">
+                    </div>
+                    <div id="safety-margin" class="p-3 rounded-xl text-xs font-medium">
+                        <!-- Recomendación dinámica -->
                     </div>
                 </div>
             </div>
-        </section>
 
-        <!-- SECTION: EXPENSES CONTROL -->
-        <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 card">
-                <h3 class="text-xl font-bold mb-4">Gastos de Autopromoción (Soft Costs)</h3>
-                <div class="table-container">
-                    <table>
+            <!-- TABLA GASTOS EXTRAS -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 bg-slate-900 text-white flex justify-between items-center">
+                        <h3 class="font-bold italic">Gastos Adicionales de Autopromotor</h3>
+                        <span class="text-[10px] opacity-60">FONDOS PROPIOS NECESARIOS</span>
+                    </div>
+                    <table class="text-xs">
                         <thead>
-                            <tr>
-                                <th>Concepto</th>
-                                <th>Importe (€)</th>
-                                <th>Estado</th>
-                                <th>Observaciones</th>
+                            <tr class="bg-slate-100">
+                                <th class="!text-slate-700 !bg-transparent">Concepto</th>
+                                <th class="!text-slate-700 !bg-transparent text-right">Inversión Estimada</th>
+                                <th class="!text-slate-700 !bg-transparent">Observaciones</th>
                             </tr>
                         </thead>
-                        <tbody id="expenses-body">
-                            <!-- JS Inject -->
+                        <tbody>
+                            <tr>
+                                <td class="font-bold">Arquitecto y Dirección</td>
+                                <td class="text-right">28.500,00 €</td>
+                                <td class="text-slate-400">Proyecto + DO + DEO</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold">Licencia y Tasas</td>
+                                <td class="text-right">18.000,00 €</td>
+                                <td class="text-slate-400">ICIO + Tasa Urbanística</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold">Seguros y Varios</td>
+                                <td class="text-right">4.500,00 €</td>
+                                <td class="text-slate-400">Todo Riesgo + OCT</td>
+                            </tr>
+                            <tr class="bg-slate-50 font-black">
+                                <td>TOTAL PRE-OBRA</td>
+                                <td class="text-right text-amber-600">51.000,00 €</td>
+                                <td>No financiables habitualmente</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
-            </div>
-            <div class="card flex flex-col justify-center bg-slate-50">
-                <h4 class="text-xs uppercase text-slate-400 font-bold mb-4 text-center">Resumen Gastos Técnicos e Impuestos</h4>
-                <div class="space-y-4">
-                    <div class="flex justify-between items-center border-b pb-2">
-                        <span class="text-sm">Ya Pagado:</span>
-                        <span class="font-bold text-emerald-600" id="total-paid">0 €</span>
+
+                <!-- TABLA FLUJO DE CAJA -->
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                        <h2 class="text-xl font-bold italic tracking-tight">Flujo de Caja y Desfase</h2>
                     </div>
-                    <div class="flex justify-between items-center border-b pb-2">
-                        <span class="text-sm">Pendiente:</span>
-                        <span class="font-bold text-amber-600" id="total-pending">0 €</span>
-                    </div>
-                    <div class="flex justify-between items-center border-b pb-2">
-                        <span class="text-sm font-semibold">IVA Obra (10%):</span>
-                        <span class="font-bold text-slate-700" id="total-iva-obra">0 €</span>
-                    </div>
-                    <div class="flex justify-between items-center pt-2">
-                        <span class="text-sm font-bold">Total Gastos + IVA:</span>
-                        <span class="font-black text-slate-900" id="total-expenses-sum">0 €</span>
+                    <div class="table-container">
+                        <table id="cashflow-table" class="text-[13px]">
+                            <thead>
+                                <tr>
+                                    <th>Capítulo</th>
+                                    <th class="text-right">Obra (PEM)</th>
+                                    <th class="text-right">IVA (10%)</th>
+                                    <th class="text-right">Pago Total</th>
+                                    <th class="text-right">Reembolso LTV</th>
+                                    <th class="text-right">Liquidez</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body"></tbody>
+                            <tfoot class="bg-slate-100 font-bold border-t-2 border-slate-200">
+                                <tr id="table-footer"></tr>
+                            </tfoot>
+                        </table>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <!-- SECTION: CASHFLOW TABLE -->
-        <section class="card overflow-hidden">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold">Planificación de Flujo de Caja (Obras)</h3>
-                <span class="text-xs bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-bold">Basado en Contrata Cotatres</span>
+        <!-- NOTA SOBRE EL SKELETON -->
+        <div class="bg-amber-50 border-l-4 border-amber-400 p-6 rounded-2xl flex items-start gap-4 shadow-sm">
+            <div class="text-amber-500 text-2xl">⚠️</div>
+            <div>
+                <h4 class="text-amber-900 font-bold mb-1 italic">Análisis del "Skeleton" (Estructura)</h4>
+                <p id="skeleton-text" class="text-amber-800 text-sm leading-relaxed"></p>
             </div>
-            <div class="table-container">
-                <table id="cashflow-table">
-                    <thead>
-                        <tr>
-                            <th>Capítulo del Presupuesto</th>
-                            <th>Coste Contrata (€)</th>
-                            <th>Adelanto Promotor (100%)</th>
-                            <th>Disposición Banco (%)</th>
-                            <th>Impacto en Caja</th>
-                        </tr>
-                    </thead>
-                    <tbody id="cashflow-body"></tbody>
-                </table>
-            </div>
-        </section>
+        </div>
 
-        <!-- SECTION: CHARTS -->
-        <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="card">
-                <h3 class="text-xl font-bold mb-4">Estructura de la Financiación</h3>
-                <div class="chart-container">
-                    <canvas id="fundingChart"></canvas>
-                </div>
-            </div>
-            <div class="card">
-                <h3 class="text-xl font-bold mb-4">Distribución del Presupuesto de Contrata</h3>
-                <div id="categoryChart" class="w-full h-[300px]"></div>
-            </div>
-        </section>
-
-    </main>
+    </div>
 
     <script>
         const BASE_PEM = 450150.35;
-        const IVA_RATE = 0.10;
-        const IVA_OBRA = BASE_PEM * IVA_RATE;
-
-        // Listado actualizado de gastos técnicos, licencias y suministros
-        const softCosts = [
-            { name: "Proyecto Arquitectura (Ejecución)", cost: 14500, paid: true, obs: "Visado y entregado" },
-            { name: "Licencia de Obra Mayor", cost: 8200, paid: true, obs: "Abonada al Ayuntamiento" },
-            { name: "Estudio Geotécnico y Topográfico", cost: 1800, paid: true, obs: "Realizado" },
-            { name: "Consumos (Agua/Elec/Contador)", cost: 7185.67, paid: false, obs: "Provisión obra" },
-            { name: "Declaración de Obra Nueva", cost: 5400.00, paid: false, obs: "Notaría y Registro" },
-            { name: "Dirección de Obra (Arquitecto)", cost: 6500, paid: false, obs: "A pagar por hitos" },
-            { name: "Dirección de Ejecución (Aparejador)", cost: 4500, paid: false, obs: "A pagar por hitos" },
-            { name: "Entradas Agua / Electricidad", cost: 2076.75, paid: false, obs: "Acometidas finales" },
-            { name: "OCT", cost: 1864.91, paid: false, obs: "Control Técnico Externo" },
-            { name: "Seguro Decenal", cost: 1671.86, paid: false, obs: "Garantía 10 años" },
-            { name: "Coordinación Seguridad y Salud", cost: 1200, paid: false, obs: "Durante obra" },
-            { name: "Seguro Todo Riesgo Construcción", cost: 950, paid: false, obs: "Póliza obligatoria" }
-        ];
+        const GASTOS_EXTRAS = 51000;
 
         const chapters = [
-            { name: "Movimiento Tierras y Cimentación", cost: 22400 },
-            { name: "Saneamiento y Drenajes", cost: 12250 },
-            { name: "Cerramientos (Termoarcilla)", cost: 35500 },
-            { name: "ESTRUCTURA HORMIGÓN (Skeleton)", cost: 68500 },
-            { name: "Cubiertas e Impermeabilización", cost: 25100 },
-            { name: "Revestimientos y Pavimentos", cost: 42600 },
-            { name: "Carpintería Exterior RPT", cost: 44200 },
-            { name: "Instalaciones y Aerotermia", cost: 58800 },
-            { name: "Cocina y Mobiliario Fijo", cost: 29300 },
-            { name: "Exteriores, Jardín y Varios", cost: 111500.35 } 
+            { id: "00", name: "Demoliciones", cost: 17000 },
+            { id: "01", name: "Mov. Tierras", cost: 11820 },
+            { id: "02", name: "Saneamiento", cost: 5574 },
+            { id: "03", name: "Cimentación", cost: 75075 },
+            { id: "04", name: "Estructura (Skeleton)", cost: 62448 },
+            { id: "05", name: "Albañilería", cost: 30596 },
+            { id: "06", name: "Cubiertas", cost: 14572 },
+            { id: "07", name: "Rev. y Falsos Techos", cost: 26728 },
+            { id: "08", name: "Aislamientos", cost: 15476 },
+            { id: "09", name: "Solados y Alicatados", cost: 56055 },
+            { id: "10-12", name: "Instalaciones (Elec/Font/Cal)", cost: 45300 },
+            { id: "13-14", name: "Carpinterías (Ext/Int)", cost: 57000 },
+            { id: "15-17", name: "Acabados y Varios", cost: 23000 },
+            { id: "18", name: "Limpieza", cost: 9506.35 }
         ];
 
-        const inLtv = document.getElementById('input-ltv');
-        const inYears = document.getElementById('input-years');
-        const inRate = document.getElementById('input-rate');
-        const inOwnManual = document.getElementById('input-own-manual');
-        const expensesBody = document.getElementById('expenses-body');
+        function fmt(n) { return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(n); }
 
-        let fundingChart;
-
-        function updateExpensesTable() {
-            expensesBody.innerHTML = '';
-            let paidSum = 0;
-            let pendingSum = 0;
-
-            softCosts.forEach(item => {
-                if (item.paid) paidSum += item.cost;
-                else pendingSum += item.cost;
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="font-medium text-slate-700">${item.name}</td>
-                    <td class="font-bold">${item.cost.toLocaleString('es-ES')} €</td>
-                    <td><span class="${item.paid ? 'paid-badge' : 'pending-badge'}">${item.paid ? 'PAGADO' : 'PENDIENTE'}</span></td>
-                    <td class="text-slate-400 italic text-xs">${item.obs}</td>
-                `;
-                expensesBody.appendChild(row);
-            });
-
-            document.getElementById('total-paid').innerText = paidSum.toLocaleString('es-ES') + ' €';
-            document.getElementById('total-pending').innerText = pendingSum.toLocaleString('es-ES') + ' €';
-            document.getElementById('total-iva-obra').innerText = IVA_OBRA.toLocaleString('es-ES') + ' €';
-            document.getElementById('total-expenses-sum').innerText = (paidSum + pendingSum + IVA_OBRA).toLocaleString('es-ES') + ' €';
+        function update() {
+            const ltv = parseInt(document.getElementById('input-ltv').value);
+            const years = parseInt(document.getElementById('input-years').value);
+            const rate = parseFloat(document.getElementById('input-rate').value);
+            const initialFunds = parseFloat(document.getElementById('input-funds').value) || 0;
             
-            return { paidSum, pendingSum };
-        }
+            // Actualizar etiquetas visuales
+            document.getElementById('ltv-display').innerText = ltv + '%';
+            document.getElementById('years-display').innerText = years + ' años';
+            document.getElementById('rate-display').innerText = rate.toFixed(2) + '%';
 
-        function calculate() {
-            const { paidSum, pendingSum } = updateExpensesTable();
+            const factor = ltv / 100;
+            const loanAmount = BASE_PEM * factor;
             
-            const ltvVal = inLtv.value;
-            const ltv = ltvVal / 100;
-            const years = inYears.value;
-            const rate = (inRate.value / 100) / 12;
-            const n = years * 12;
-
-            const principal = BASE_PEM * ltv;
-            const monthly = principal * (rate * Math.pow(1 + rate, n)) / (Math.pow(1 + rate, n) - 1);
+            // Cálculo Cuota (fórmula amortización francesa)
+            const monthlyRate = (rate / 100) / 12;
+            const numPayments = years * 12;
             
-            // Inversión total = Obra + IVA + Gastos técnicos totales
-            const totalProjectCost = BASE_PEM + IVA_OBRA + (paidSum + pendingSum);
-            document.getElementById('header-total').innerText = totalProjectCost.toLocaleString('es-ES', {maximumFractionDigits:0}) + ' €';
-
-            // Lo que el banco NO presta (IVA + Gastos + 20% Obra si LTV es 80)
-            const recommendedOwn = totalProjectCost - principal;
-            const actualOwn = parseFloat(inOwnManual.value) || 0;
-            
-            // Balance considerando ahorros actuales vs necesidades totales
-            const balance = actualOwn - recommendedOwn;
-
-            document.getElementById('val-ltv').innerText = ltvVal;
-            document.getElementById('val-years').innerText = years;
-            document.getElementById('val-rate').innerText = inRate.value;
-
-            document.getElementById('display-monthly').innerText = (isNaN(monthly) ? 0 : monthly).toLocaleString('es-ES', { maximumFractionDigits: 0 }) + ' €';
-            document.getElementById('display-loan').innerText = principal.toLocaleString('es-ES', { maximumFractionDigits: 0 }) + ' €';
-            document.getElementById('display-own-recommended').innerText = recommendedOwn.toLocaleString('es-ES', { maximumFractionDigits: 0 }) + ' €';
-            
-            document.getElementById('display-balance').innerText = (balance >= 0 ? "+" : "") + balance.toLocaleString('es-ES', { maximumFractionDigits: 0 }) + ' €';
-            
-            const boxLiq = document.getElementById('liquidity-status-box');
-            const outLiqMsg = document.getElementById('liquidity-msg');
-            
-            if (balance >= 0) {
-                boxLiq.className = "text-center px-6 py-3 rounded-xl bg-emerald-100 text-emerald-800";
-                outLiqMsg.innerText = "Tesorería saneada incluyendo consumos, OCT y seguro decenal.";
+            let cuota = 0;
+            if (monthlyRate > 0) {
+                cuota = (loanAmount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -numPayments));
             } else {
-                boxLiq.className = "text-center px-6 py-3 rounded-xl bg-red-100 text-red-800";
-                outLiqMsg.innerText = "Déficit detectado. Considerar aportación extra para cubrir gastos técnicos.";
+                cuota = loanAmount / numPayments;
             }
 
-            updateCharts(principal, actualOwn);
-            updateCashflowTable(ltv);
-        }
+            document.getElementById('monthly-payment').innerText = fmt(cuota);
+            document.getElementById('loan-amt').innerText = fmt(loanAmount);
 
-        function updateCashflowTable(ltvPercent) {
-            const body = document.getElementById('cashflow-body');
-            body.innerHTML = '';
-            chapters.forEach(chap => {
-                const reimburse = chap.cost * ltvPercent;
-                const net = chap.cost - reimburse;
-                const isSkeleton = chap.name.includes("ESTRUCTURA");
-                const row = document.createElement('tr');
-                if (isSkeleton) row.className = 'highlight-row';
-                row.innerHTML = `
-                    <td class="font-medium">${isSkeleton ? '🏗️ ' : ''}${chap.name}</td>
-                    <td>${chap.cost.toLocaleString('es-ES')} €</td>
-                    <td class="text-red-600">-${chap.cost.toLocaleString('es-ES')} €</td>
-                    <td class="text-blue-600">+${reimburse.toLocaleString('es-ES', {maximumFractionDigits:0})} €</td>
-                    <td class="font-bold">${net.toLocaleString('es-ES', {maximumFractionDigits:0})} €</td>
+            let currentLiquidity = initialFunds - GASTOS_EXTRAS;
+            
+            const tableBody = document.getElementById('table-body');
+            let html = '';
+            let totals = { pem: 0, iva: 0, total: 0, banco: 0 };
+
+            chapters.forEach(ch => {
+                const iva = ch.cost * 0.10;
+                const totalPagoCh = ch.cost + iva;
+                const reembolsoBanco = ch.cost * factor;
+                
+                currentLiquidity = currentLiquidity - totalPagoCh + reembolsoBanco;
+
+                totals.pem += ch.cost;
+                totals.iva += iva;
+                totals.total += totalPagoCh;
+                totals.banco += reembolsoBanco;
+
+                html += `
+                    <tr>
+                        <td class="font-medium text-slate-800">${ch.name}</td>
+                        <td class="text-right">${fmt(ch.cost)}</td>
+                        <td class="text-right text-slate-400">${fmt(iva)}</td>
+                        <td class="text-right font-semibold">${fmt(totalPagoCh)}</td>
+                        <td class="text-right text-blue-600">${fmt(reembolsoBanco)}</td>
+                        <td class="text-right ${currentLiquidity < 0 ? 'negative' : 'positive'}">
+                            ${fmt(currentLiquidity)}
+                        </td>
+                    </tr>
                 `;
-                body.appendChild(row);
-            });
-        }
 
-        function updateCharts(loan, own) {
-            if(fundingChart) {
-                fundingChart.data.datasets[0].data = [loan, own];
-                fundingChart.update();
+                if (ch.id === "04") {
+                    const diff = totalPagoCh - reembolsoBanco;
+                    document.getElementById('skeleton-text').innerHTML = `La fase de <strong>Estructura</strong> exige un desembolso neto de fondos propios de <strong>${fmt(diff)}</strong> (IVA incluido). El banco solo te devuelve el ${ltv}% del PEM neto.`;
+                }
+            });
+
+            tableBody.innerHTML = html;
+            document.getElementById('table-footer').innerHTML = `
+                <td class="p-4">TOTAL OBRA</td>
+                <td class="p-4 text-right">${fmt(totals.pem)}</td>
+                <td class="p-4 text-right">${fmt(totals.iva)}</td>
+                <td class="p-4 text-right">${fmt(totals.total)}</td>
+                <td class="p-4 text-right text-blue-700">${fmt(totals.banco)}</td>
+                <td class="p-4 text-right ${currentLiquidity < 0 ? 'negative' : 'positive'}">${fmt(currentLiquidity)}</td>
+            `;
+
+            const fundsNeeded = (BASE_PEM * (1 - factor)) + (BASE_PEM * 0.10) + GASTOS_EXTRAS;
+            const marginBox = document.getElementById('safety-margin');
+            if (initialFunds < fundsNeeded) {
+                marginBox.className = "p-3 rounded-xl text-xs font-medium bg-red-50 text-red-700 border border-red-100";
+                marginBox.innerHTML = `⚠️ Fondos insuficientes. Se recomiendan al menos <strong>${fmt(fundsNeeded)}</strong> para cubrir el ${100-ltv}% no financiado, el IVA completo y los gastos técnicos iniciales.`;
+            } else {
+                marginBox.className = "p-3 rounded-xl text-xs font-medium bg-green-50 text-green-700 border border-green-100";
+                marginBox.innerHTML = `✅ Dispones de un colchón de seguridad de ${fmt(initialFunds - fundsNeeded)} sobre el mínimo aconsejado.`;
             }
         }
 
-        function init() {
-            fundingChart = new Chart(document.getElementById('fundingChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Financiación Bancaria', 'Fondos Propios'],
-                    datasets: [{ data: [0, 0], backgroundColor: ['#2563eb', '#10b981'], borderWidth: 0 }]
-                },
-                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-            });
+        ['input-ltv', 'input-years', 'input-rate', 'input-funds'].forEach(id => {
+            document.getElementById(id).addEventListener('input', update);
+        });
 
-            const pLabels = ["Presupuesto Total", ...chapters.map(c => c.name)];
-            const pParents = ["", ...chapters.map(c => "Presupuesto Total")];
-            const pValues = [BASE_PEM, ...chapters.map(c => c.cost)];
-            Plotly.newPlot('categoryChart', [{
-                type: "treemap", labels: pLabels, parents: pParents, values: pValues, marker: { colorscale: 'Greens' }
-            }], { margin: {t:0, l:0, r:0, b:0}, paper_bgcolor: 'rgba(0,0,0,0)' }, {responsive: true, displayModeBar: false});
-
-            [inLtv, inYears, inRate, inOwnManual].forEach(el => el.addEventListener('input', calculate));
-            calculate();
-        }
-
-        window.onload = init;
+        window.onload = update;
     </script>
 </body>
 </html>
